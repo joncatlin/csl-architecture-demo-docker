@@ -1,0 +1,106 @@
+version: '3'
+ 
+services:
+ 
+    zoo:
+        image: confluentinc/cp-zookeeper:3.3.0
+        environment:
+            ZOOKEEPER_SERVER_ID: 3
+            ZOOKEEPER_CLIENT_PORT: 22181
+            ZOOKEEPER_TICK_TIME: 2000
+            ZOOKEEPER_INIT_LIMIT: 5
+            ZOOKEEPER_SYNC_LIMIT: 2
+            ZOOKEEPER_SERVERS: 10.123.11.177:22888:23888;10.123.11.178:22888:23888;10.123.11.179:22888:23888
+        network_mode: host
+        volumes:
+            - "/mount/xvdb1/zk-data:/var/lib/zookeeper/data"
+            - "/mount/xvdb1/zk-txn-logs:/var/lib/zookeeper/log"
+ 
+    kafka:
+        image: joncatlin/kafka-wait
+        network_mode: host
+        environment:
+            KAFKA_BROKER_ID: 3
+            KAFKA_ZOOKEEPER_CONNECT: 10.123.11.177:22181,10.123.11.178:22181,10.123.11.179:22181
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://10.123.11.179:29092
+        volumes:
+            - "/mount/xvdb1/kafka-logs:/var/lib/kafka/data"
+ 
+    cb:
+        image: couchbase
+        network_mode: "host"
+        volumes:
+            - "/mount/xvdb1/jon_cb01:/opt/couchbase/var"
+  
+    db:
+        image: mysql:5.7
+        volumes:
+            - /mount/xvdb1/mysql/:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: somewordpress
+            MYSQL_DATABASE: wordpress
+            MYSQL_USER: wordpress
+            MYSQL_PASSWORD: wordpress
+ 
+    wordpress:
+        depends_on:
+            - db
+        image: wordpress:latest
+        working_dir: /var/www/html
+        ports:
+            - "8080:80"
+        restart: always
+        environment:
+            WORDPRESS_DB_HOST: db:3306
+            WORDPRESS_DB_USER: wordpress
+            WORDPRESS_DB_PASSWORD: wordpress
+        volumes:
+            - /mount/xvdb1/wordpress/:/var/www/html/
+            - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+  
+    kafka-consumer:
+        image: joncatlin/kafka-consumer:1.0.5
+        environment:
+            - KAFKA_NODES=docker07.concordservicing.com:29092,docker08.concordservicing.com:29092,docker09.concordservicing.com:29092
+            - COUCHBASE_NODES=docker07.concordservicing.com,docker08.concordservicing.com,docker09.concordservicing.com
+            - KAFKA_TOPIC=jontest02
+            - KAFKA_GROUP_ID=arch-group1
+            - STATSD_SERVER=docker08.concordservicing.com
+            - BATCH_SIZE=100
+ 
+    pm-db:
+        image: mariadb
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: processmaker
+            MYSQL_USER: processmaker
+            MYSQL_PASSWORD: processmaker
+        volumes:
+            - /mount/xvdb1/pm-mysql:/var/lib/mysql
+ 
+    pm:
+        depends_on:
+            - pm-db
+        image: eltercera/docker-processmaker:3.2-php5.6-apache
+        ports:
+            - "8082:80"
+        environment:
+            HTTPD_SERVER_ADMIN: jonc@destini.com
+            HTTPD_SERVER_ADMIN: 
+            PHP_POST_MAX_SIZE: 10M
+            PHP_UPLOAD_MAX_FILE_SIZE: 10M
+        links:
+            - pm-db
+        volumes:
+            - /mount/xvdb1/process-maker:/opt/processmaker
+
+    admin:
+        image: phpmyadmin/phpmyadmin
+        depends_on:
+            - pm-db
+        environment:
+            - PMA_ARBITRARY=1
+        ports:
+            - 8083:80
+        links:
+            - pm-db
