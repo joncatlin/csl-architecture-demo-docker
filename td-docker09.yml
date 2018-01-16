@@ -58,12 +58,12 @@ services:
             - /mount/xvdb1/wordpress/:/var/www/html/
             - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
   
-    kafka-consumer:
+    kafka-consumer-accounts:
         image: joncatlin/kafka-consumer:1.0.5
         environment:
             - KAFKA_NODES=docker07.concordservicing.com:29092,docker08.concordservicing.com:29092,docker09.concordservicing.com:29092
             - COUCHBASE_NODES=docker07.concordservicing.com,docker08.concordservicing.com,docker09.concordservicing.com
-            - KAFKA_TOPIC=jontest02
+            - KAFKA_TOPIC=AccountState
             - KAFKA_GROUP_ID=arch-group1
             - STATSD_SERVER=docker08.concordservicing.com
             - BATCH_SIZE=100
@@ -104,3 +104,14 @@ services:
             - 8083:80
         links:
             - pm-db
+
+    kafka-consumer-portfolios:
+      image: joncatlin/kafka-consumer:1.0.5
+      environment:
+        - KAFKA_NODES=docker07.concordservicing.com:29092,docker08.concordservicing.com:29092,docker09.concordservicing.com:29092
+        - COUCHBASE_NODES=docker07.concordservicing.com,docker08.concordservicing.com,docker09.concordservicing.com
+        - KAFKA_TOPIC=PortfolioState
+        - KAFKA_GROUP_ID=arch-group2
+        - STATSD_SERVER=docker08.concordservicing.com
+        - BATCH_SIZE=100
+
