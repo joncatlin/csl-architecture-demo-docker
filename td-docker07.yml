@@ -47,11 +47,13 @@ services:
     image: jmcruz/demoservice
     ports:
       - 9119:80
-    
     environment:
       - COUCHBASE_SERVERS=docker05.concordservicing.com;docker04.concordservicing.com;docker06.concordservicing.com
       - COUCHBASE_USER=anyone
       - COUCHBASE_PWD=anyone
+      - COUCHBASE_PORTFOLIO=PortfolioState
+      - COUCHBASE_ACCOUNT=AccountState
+      - COUCHBASE_USERS=Users
 
   kafka-consumer-portfolios:
     image: joncatlin/kafka-consumer:1.0.5
@@ -62,4 +64,9 @@ services:
       - KAFKA_GROUP_ID=arch-group2
       - STATSD_SERVER=docker08.concordservicing.com
       - BATCH_SIZE=100
+ 
+
+
+
+
  
