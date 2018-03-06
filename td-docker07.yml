@@ -43,17 +43,28 @@ services:
       - BATCH_SIZE=100
  
   demoservice:
-#    image: joncatlin/josh-demoservice
-    image: jmcruz/demoservice
+    image: jmcruz/demoservice:1.2
     ports:
       - 9119:80
     environment:
-      - COUCHBASE_SERVERS=docker05.concordservicing.com;docker04.concordservicing.com;docker06.concordservicing.com
+      - COUCHBASE_SERVERS=docker07.concordservicing.com;docker08.concordservicing.com;docker09.concordservicing.com
       - COUCHBASE_USER=anyone
       - COUCHBASE_PWD=anyone
       - COUCHBASE_PORTFOLIO=PortfolioState
       - COUCHBASE_ACCOUNT=AccountState
       - COUCHBASE_USERS=Users
+
+#  demoservice2:
+#    image: alfredherr/demoservice:1.1
+#    ports:
+#      - 8083:80
+#    environment:
+#      - COUCHBASE_SERVERS=docker07.concordservicing.com;docker08.concordservicing.com;docker09.concordservicing.com
+#      - COUCHBASE_USER=anyone
+#      - COUCHBASE_PWD=anyone
+#      - COUCHBASE_PORTFOLIO=PortfolioState
+#      - COUCHBASE_ACCOUNT=AccountState
+#      - COUCHBASE_USERS=Users
 
   kafka-consumer-portfolios:
     image: joncatlin/kafka-consumer:1.0.5
